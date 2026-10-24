@@ -1,0 +1,6 @@
+*.o
+central
+estafeta
+gerador
+*.lock
+*.tmp
