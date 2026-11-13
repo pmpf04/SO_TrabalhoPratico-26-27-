@@ -1,6 +1,4 @@
-*.o
 central
-estafeta
-gerador
+tarifador
+*.o
 *.lock
-*.tmp
