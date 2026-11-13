@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <fcntl.h>
 
 #include "central.h"
 
@@ -191,6 +192,18 @@ int main(int argc, char *argv[]) {
         perror("Erro ao configurar sinais");
         return 1;
     }
+//ficheiro tmp
+if (access("/tmp/central_so.lock", F_OK) == 0) {
+        printf("Erro: A Central já se encontra em execução!\n");
+        return 1; // Sai imediatamente se o ficheiro já existir
+    }
+
+    // Como não existe, cria o ficheiro (assinalando que a central está ativa)
+    int fd_lock = open("/tmp/central_so.lock", O_CREAT | O_WRONLY, 0600);
+    if (fd_lock == -1) {
+        perror("Erro ao criar ficheiro de lock");
+        return 1;
+    }
 
     ConfigCentral config;
     Estatisticas stats = {0};
@@ -252,6 +265,10 @@ int main(int argc, char *argv[]) {
 
     int retProc;
     waitpid(pid, &retProc, 0);
+
+    //apagar o ficheiro tmp
+    close(fd_lock);
+    unlink("/tmp/central_so.lock");
 
     printf("Central encerrada.\n");
 
