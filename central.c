@@ -3,8 +3,19 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #include "central.h"
+
+int central_ativa = 1;
+
+
+void tratador_sinais(int sig) {
+    if (sig == SIGINT) {
+        write(STDOUT_FILENO, "\nEncerramento do programa.\n", 27);
+        central_ativa = 0;
+    }
+}
 
 int carregar_config_central(int argc, char *argv[], ConfigCentral *config){
     char *valor;
@@ -101,7 +112,6 @@ void ler_comandos(Estatisticas *stats, int canal_ct[2], int canal_tc[2]) {
     char origem[16];
     char destino[16];
     float peso;
-    int central_ativa = 1;
 
     while (central_ativa) {
         printf("\ncentral> ");
@@ -171,6 +181,17 @@ void ler_comandos(Estatisticas *stats, int canal_ct[2], int canal_tc[2]) {
 }
 
 int main(int argc, char *argv[]) {
+
+    struct sigaction sa;
+    sa.sa_handler = tratador_sinais;
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+    
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        perror("Erro ao configurar sinais");
+        return 1;
+    }
+
     ConfigCentral config;
     Estatisticas stats = {0};
 
@@ -206,7 +227,6 @@ int main(int argc, char *argv[]) {
     }
 
     if (pid == 0) {
-
         close(canal_ct[1]);
         close(canal_tc[0]);
 
@@ -222,7 +242,6 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-
     close(canal_ct[0]);
     close(canal_tc[1]);
 
@@ -237,38 +256,5 @@ int main(int argc, char *argv[]) {
     printf("Central encerrada.\n");
 
     return 0;
-}
-    if (pid == 0) {
-
-        close(canal_ct[1]);
-        close(canal_tc[0]);
-
-        dup2(canal_ct[0], STDIN_FILENO);
-        dup2(canal_tc[1], STDOUT_FILENO);
-
-        close(canal_ct[0]);
-        close(canal_tc[1]);
-
-        execl("./tarifador", "tarifador", NULL);
-
-        perror("Erro no exec");
-        exit(1);
-    }
-
-
-    close(canal_ct[0]);
-    close(canal_tc[1]);
-
-    ler_comandos(&stats, canal_ct, canal_tc);
-
-    close(canal_ct[1]);
-    close(canal_tc[0]);
-
-    int retProc;
-    waitpid(pid, &retProc, 0);
-
-    printf("Central encerrada.\n");
-
-    return 0;
-}    //export CENTRAL_PIPE="/tmp/central_pipe" para testar
+}   //export CENTRAL_PIPE="/tmp/central_pipe" para testar
 
