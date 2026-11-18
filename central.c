@@ -147,6 +147,13 @@ void ler_comandos(Estatisticas *stats, int canal_ct[2], int canal_tc[2]) {
                 printf("Erro: O comando 'stats' nao recebe parametros.\n");
             }
         }
+	else if (strcmp(comando, "pedidos") == 0) {
+            if (args_lidos == 1) {
+                printf("Validação correta. A listar pedidos por atribuir e em curso...\n");
+            } else {
+                printf("Erro: O comando 'pedidos' nao recebe parametros.\n");
+            }
+        }
         else if (strcmp(comando, "encerra") == 0) {
             if (args_lidos == 1) {
                 printf("A iniciar encerramento da central...\n");
@@ -157,7 +164,7 @@ void ler_comandos(Estatisticas *stats, int canal_ct[2], int canal_tc[2]) {
         }
         else if (strcmp(comando, "estafetas") == 0) {
             if (args_lidos == 1) {
-                printf("[DEBUG] Validação OK: A listar estafetas...\n");
+                printf("Validação OK: A listar estafetas...\n");
             } else {
                 printf("Erro: O comando 'estafetas' nao recebe parametros.\n");
             }
@@ -166,7 +173,7 @@ void ler_comandos(Estatisticas *stats, int canal_ct[2], int canal_tc[2]) {
             if (args_lidos == 2) {
                 int novo_prazo = atoi(origem); 
                 if (novo_prazo > 0) {
-                    printf("[DEBUG] Validação OK: Prazo alterado para %d segundos.\n", novo_prazo);
+                    printf("Validação OK: Prazo alterado para %d segundos.\n", novo_prazo);
                     
                 } else {
                     printf("Erro: O prazo tem de ser um numero inteiro positivo.\n");
@@ -182,7 +189,7 @@ void ler_comandos(Estatisticas *stats, int canal_ct[2], int canal_tc[2]) {
 }
 
 int main(int argc, char *argv[]) {
-
+	signal(SIGPIPE, SIG_IGN);
     struct sigaction sa;
     sa.sa_handler = tratador_sinais;
     sa.sa_flags = 0;
